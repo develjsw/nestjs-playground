@@ -1,6 +1,6 @@
 {
   "name": "api-package",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "license": "UNLICENSED",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -42,7 +42,9 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
-    "lint": "eslint \"src/**/*.ts\" --fix"
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "prebuild": "node scripts/prebuild.js && node scripts/step-format.js && pnpm -s format && node scripts/step-lint.js && pnpm -s lint && node scripts/step-build.js",
+    "packing": "pnpm build && node scripts/step-pack.js && pnpm pack && node scripts/finish.js"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.1",
