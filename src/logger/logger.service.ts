@@ -1,23 +1,22 @@
 import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common';
 import * as winston from 'winston';
 import { TransportFactory } from './transport/transport.factory';
-import { LoggerOptions } from './type/logger.option';
+import { LoggerOptions, LogLevel } from './type/logger.option';
 
 type PrimitiveType = string | number | boolean | object;
 
 @Injectable()
 export class LoggerService implements NestLoggerService {
   private logger: winston.Logger;
-  private transportFactory = new TransportFactory();
+  private readonly transportFactory = new TransportFactory();
 
-  constructor(options: LoggerOptions = {}) {
+  constructor(options: LoggerOptions) {
     const transports = this.transportFactory.createTransports(
-      options.transports || { console: { level: 'info' } },
+      options.transports,
     );
 
     this.logger = winston.createLogger({
-      level: options.level || 'info',
-      format: winston.format.json(),
+      level: options.level || LogLevel.DEBUG,
       defaultMeta: options.defaultMeta || {},
       transports,
     });

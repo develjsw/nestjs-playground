@@ -4,7 +4,7 @@ import { LoggerOptions } from './type/logger.option';
 
 @Module({})
 export class LoggerModule {
-  static forRoot(options: LoggerOptions = {}): DynamicModule {
+  static forRoot(options: LoggerOptions): DynamicModule {
     return {
       module: LoggerModule,
       providers: [

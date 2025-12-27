@@ -7,7 +7,9 @@ export class TransportFactory {
   private readonly consoleTransport = new ConsoleTransport();
   private readonly fileTransport = new FileTransport();
 
-  createTransports(options: TransportOptions): winston.transport[] {
+  createTransports(
+    options: Pick<TransportOptions, 'console' | 'file'>,
+  ): winston.transport[] {
     const transports: winston.transport[] = [];
 
     if (options.console) {
@@ -16,6 +18,12 @@ export class TransportFactory {
 
     if (options.file) {
       transports.push(this.fileTransport.build(options.file));
+    }
+
+    if (!transports.length) {
+      throw new Error(
+        'At least one transport (console or file) must be configured',
+      );
     }
 
     return transports;
