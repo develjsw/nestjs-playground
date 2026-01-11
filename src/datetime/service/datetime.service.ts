@@ -16,15 +16,18 @@ export class DatetimeService {
     private readonly datetimeRepository: Repository<DatetimeEntity>,
   ) {}
 
-  async findAll(): Promise<DatetimeEntity[]> {
+  async getDatetimeList(): Promise<DatetimeEntity[]> {
     return this.datetimeRepository.find();
   }
 
-  async findOne(id: number): Promise<DatetimeEntity | null> {
+  async getDatetimeDetail(id: number): Promise<DatetimeEntity | null> {
     return this.datetimeRepository.findOne({ where: { id } });
   }
 
-  async createWithTimezone(dateStr: string, timezone: string = 'Asia/Seoul') {
+  async createDatetimeWithTimezone(
+    dateStr: string,
+    timezone: string = 'Asia/Seoul',
+  ): Promise<DatetimeEntity> {
     const date = dayjs.tz(dateStr, timezone); // timezone이 적용된 로컬시각
 
     const entity = this.datetimeRepository.create({
@@ -35,7 +38,12 @@ export class DatetimeService {
     return this.datetimeRepository.save(entity);
   }
 
-  getTimezoneExamples() {
+  getTimezoneList(): {
+    timezone: string;
+    current: string;
+    offset: string;
+    iso: string;
+  }[] {
     const timezones = [
       'UTC',
       'Asia/Seoul',

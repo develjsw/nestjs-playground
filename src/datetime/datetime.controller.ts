@@ -7,22 +7,27 @@ export class DatetimeController {
   constructor(private readonly datetimeService: DatetimeService) {}
 
   @Get()
-  async findAll() {
-    return this.datetimeService.findAll();
+  async getDatetimeList() {
+    return this.datetimeService.getDatetimeList();
   }
 
   @Get('timezones')
-  getTimezones() {
-    return this.datetimeService.getTimezoneExamples();
+  getTimezoneList() {
+    return this.datetimeService.getTimezoneList();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.datetimeService.findOne(+id);
+  async getDatetimeDetail(@Param('id') id: string) {
+    return this.datetimeService.getDatetimeDetail(+id);
   }
 
   @Post('timezone')
-  async createWithTimezone(@Body() body: CreateDatetimeWithTimezoneDto) {
-    return this.datetimeService.createWithTimezone(body.dateStr, body.timezone);
+  async createDatetimeWithTimezone(
+    @Body() body: CreateDatetimeWithTimezoneDto,
+  ) {
+    return this.datetimeService.createDatetimeWithTimezone(
+      body.dateStr,
+      body.timezone,
+    );
   }
 }
