@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>실시간 채팅 번역 - 테스트 클라이언트</title>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 30px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+    .status {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      display: inline-block;
+    }
+    .status.connected { background: #d4edda; color: #155724; }
+    .status.disconnected { background: #f8d7da; color: #721c24; }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+    }
+    .language-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    .result h3 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    .result p {
+      color: #666;
+      line-height: 1.6;
+      word-wrap: break-word;
+    }
+    .error {
+      background: #fff3cd;
+      border-left-color: #ffc107;
+      color: #856404;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌐 실시간 채팅 번역</h1>
+    <div id="status" class="status disconnected">연결 중...</div>
+
+    <div class="input-group">
+      <label for="text">번역할 텍스트</label>
+      <textarea id="text" placeholder="번역할 내용을 입력하세요..."></textarea>
+    </div>
+
+    <div class="language-row">
+      <div class="input-group">
+        <label for="sourceLang">원본 언어</label>
+        <select id="sourceLang">
+          <option value="ko">한국어</option>
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
+          <option value="zh">中文</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="targetLang">목표 언어</label>
+        <select id="targetLang">
+          <option value="en">English</option>
+          <option value="ko">한국어</option>
+          <option value="ja">日本語</option>
+          <option value="zh">中文</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="translateBtn">번역하기</button>
+
+    <div id="result" style="display: none;"></div>
+  </div>
+
+  <script>
+    // WebSocket 연결
+    const socket = io('http://localhost:9999');
+    const statusEl = document.getElementById('status');
+    const resultEl = document.getElementById('result');
+    const translateBtn = document.getElementById('translateBtn');
+
+    // 연결 상태 관리
+    socket.on('connect', () => {
+      statusEl.textContent = '✅ 연결됨';
+      statusEl.className = 'status connected';
+      translateBtn.disabled = false;
+    });
+
+    socket.on('disconnect', () => {
+      statusEl.textContent = '❌ 연결 끊김';
+      statusEl.className = 'status disconnected';
+      translateBtn.disabled = true;
+    });
+
+    // 번역 결과 수신
+    socket.on('translation-result', (response) => {
+      if (response.success) {
+        const data = response.data;
+        resultEl.innerHTML = `
+          <h3>✨ 번역 완료</h3>
+          <p><strong>원문:</strong> ${data.originalText}</p>
+          <p><strong>번역:</strong> ${data.translatedText}</p>
+          <p style="font-size: 12px; color: #999; margin-top: 10px;">
+            ${data.sourceLanguage} → ${data.targetLanguage} |
+            ${new Date(data.timestamp).toLocaleTimeString('ko-KR')}
+          </p>
+        `;
+        resultEl.className = 'result';
+        resultEl.style.display = 'block';
+      }
+      translateBtn.disabled = false;
+      translateBtn.textContent = '번역하기';
+    });
+
+    // 에러 처리
+    socket.on('translation-error', (response) => {
+      resultEl.innerHTML = `
+        <h3>⚠️ 번역 실패</h3>
+        <p>${response.error}</p>
+      `;
+      resultEl.className = 'result error';
+      resultEl.style.display = 'block';
+      translateBtn.disabled = false;
+      translateBtn.textContent = '번역하기';
+    });
+
+    // 번역 요청
+    translateBtn.addEventListener('click', () => {
+      const text = document.getElementById('text').value.trim();
+      if (!text) {
+        alert('번역할 텍스트를 입력하세요.');
+        return;
+      }
+
+      translateBtn.disabled = true;
+      translateBtn.textContent = '번역 중...';
+
+      socket.emit('translate', {
+        text: text,
+        sourceLanguage: document.getElementById('sourceLang').value,
+        targetLanguage: document.getElementById('targetLang').value,
+      });
+    });
+  </script>
+</body>
+</html>
