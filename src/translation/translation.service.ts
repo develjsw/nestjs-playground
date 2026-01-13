@@ -3,10 +3,6 @@ import { ChatOpenAI } from '@langchain/openai';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { TranslateRequestDto, TranslateResponseDto } from './dto/translate.dto';
 
-/**
- * Translation Service
- * LangChain과 OpenAI를 사용한 번역 서비스
- */
 @Injectable()
 export class TranslationService {
   private readonly logger = new Logger(TranslationService.name);
@@ -15,8 +11,8 @@ export class TranslationService {
 
   constructor() {
     this.openai = new ChatOpenAI({
-      modelName: 'gpt-4o-mini',
-      temperature: 0.3, // 낮은 temperature로 일관된 번역 결과 유도
+      model: 'gpt-4o-mini',
+      temperature: 0.3,
       apiKey: process.env.OPENAI_API_KEY,
     });
 
@@ -33,31 +29,27 @@ export class TranslationService {
     ]);
   }
 
-  /**
-   * 텍스트 번역 실행
-   * @param request 번역 요청 데이터
-   * @returns 번역 결과
-   */
   async translate(request: TranslateRequestDto): Promise<TranslateResponseDto> {
+    const { text, sourceLanguage, targetLanguage } = request;
     try {
       this.logger.log(
-        `Translating from ${request.sourceLanguage} to ${request.targetLanguage}`,
+        `Translating from ${sourceLanguage} to ${targetLanguage}`,
       );
 
       // LangChain 체인 구성 및 실행
       const chain = this.promptTemplate.pipe(this.openai);
 
-      const result = await chain.invoke({
-        sourceLanguage: request.sourceLanguage,
-        targetLanguage: request.targetLanguage,
-        text: request.text,
+      const { content } = await chain.invoke({
+        sourceLanguage,
+        targetLanguage,
+        text,
       });
 
       return {
-        translatedText: result.content.toString(),
-        originalText: request.text,
-        sourceLanguage: request.sourceLanguage,
-        targetLanguage: request.targetLanguage,
+        translatedText: JSON.stringify(content),
+        originalText: text,
+        sourceLanguage,
+        targetLanguage,
         timestamp: new Date(),
       };
     } catch (error) {
