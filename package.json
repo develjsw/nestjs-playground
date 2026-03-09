@@ -23,18 +23,12 @@
     "kill:port": "powershell -ExecutionPolicy Bypass -Command \"& { param([int]$Port) if (-not $Port) { Write-Error 'Port is required'; exit 1 } Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force } }\""
   },
   "dependencies": {
-    "@langchain/core": "^1.1.12",
-    "@langchain/openai": "^1.2.1",
     "@nestjs/common": "^11.0.1",
-    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
-    "@nestjs/platform-socket.io": "^11.1.11",
     "@nestjs/websockets": "^11.1.11",
-    "langchain": "^1.2.7",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1",
-    "socket.io": "^4.8.3"
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
